@@ -177,7 +177,11 @@ const Homepage = () => {
               className="absolute -bottom-4 left-0"
             />
             <h2 className="text-2xl font-semibold">Shop Popular Categories</h2>
-            <Button variant={"link"} size={"lg"}>
+            <Button
+              onClick={() => router.push("/products")}
+              variant={"link"}
+              size={"lg"}
+            >
               See All
             </Button>
           </div>
@@ -209,7 +213,11 @@ const Homepage = () => {
             <p className="text-[#9F9F9F] mb-2 lg:mb-10">
               Enjoy with your couple using our latest Simple bouqet set!
             </p>
-            <Button className="bg-[#FF85BC] hover:bg-[#FF85BC]/90" size={"lg"}>
+            <Button
+              onClick={() => router.push("/products")}
+              className="bg-[#FF85BC] hover:bg-[#FF85BC]/90"
+              size={"lg"}
+            >
               Explore All Products
             </Button>
           </div>

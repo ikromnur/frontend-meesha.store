@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CardTransaction from "@/features/transaction/components/card-transaction";
 import { useUpdateSearchParams } from "@/hooks/use-search-params";
 import { Order } from "@/types/order";
+import UnauthorizePage from "../unauthorize";
+import { useSession } from "next-auth/react";
 
 const orders: Order[] = [
   {
@@ -128,6 +130,7 @@ const tabs = [
 ];
 
 const HistoryPage = () => {
+  const { data: session } = useSession();
   const { params, updateParams } = useUpdateSearchParams();
 
   const currentTab = params.filter ?? "all";
@@ -135,6 +138,10 @@ const HistoryPage = () => {
   const handleTabChange = (value: string) => {
     updateParams({ filter: value });
   };
+
+  if (!session) {
+    return <UnauthorizePage />;
+  }
 
   return (
     <div className="relative w-full max-w-screen-xl mx-auto px-4 pt-6">

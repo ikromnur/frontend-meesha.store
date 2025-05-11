@@ -2,24 +2,16 @@
 
 import UnauthorizePage from "../unauthorize";
 import { FormProvider, useForm } from "react-hook-form";
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
   profileSchema,
   ProfileFormValues,
 } from "@/features/profile/form/profile";
 import ProfileForm from "@/features/profile/components/profile-form";
+import { useSession } from "next-auth/react";
 
 const ProfilePage = () => {
-  const [session] = useState({
-    user: {
-      username: "username",
-      name: "name",
-      email: "email",
-      nohp: "nohp",
-    },
-  });
+  const { data: session } = useSession();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),

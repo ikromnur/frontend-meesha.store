@@ -13,8 +13,11 @@ import { formatRupiah } from "@/helper/format-rupiah";
 import { UseUpdateCart } from "@/features/cart/api/use-update-cart";
 import { UseDeleteCart } from "@/features/cart/api/use-delete-cart";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import UnauthorizePage from "../unauthorize";
 
 export default function CartPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -67,6 +70,10 @@ export default function CartPage() {
     (total: number, item: Cart) => total + item.price * item.quantity,
     0
   );
+
+  if (!session) {
+    return <UnauthorizePage />;
+  }
 
   return (
     <div className="relative w-full max-w-screen-xl mx-auto px-4 py-6">

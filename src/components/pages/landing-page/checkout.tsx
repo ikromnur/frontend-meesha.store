@@ -34,6 +34,8 @@ import { formatRupiah } from "@/helper/format-rupiah";
 import { emailSchema, nameSchema, phoneSchema } from "@/schemas/auth";
 import { Input } from "@/components/ui/input";
 import { UseCreateTransaction } from "@/features/transaction/api/use-create-transaction";
+import { useSession } from "next-auth/react";
+import UnauthorizePage from "../unauthorize";
 
 export const transactionSchema = z.object({
   date: z.date({ required_error: "Tanggal harus dipilih" }),
@@ -46,6 +48,7 @@ export const transactionSchema = z.object({
 export type TransactionSchema = z.infer<typeof transactionSchema>;
 
 const CheckoutPage = () => {
+  const { data: session } = useSession();
   const { toast } = useToast();
   const [hour, setHour] = useState<number | null>(null);
   const [minute, setMinute] = useState<number | null>(null);
@@ -128,6 +131,10 @@ const CheckoutPage = () => {
       (acc: number, item: Cart) => acc + item.price * item.quantity,
       0
     ) ?? 0;
+
+  if (!session) {
+    return <UnauthorizePage />;
+  }
 
   return (
     <div className="relative w-full max-w-screen-xl mx-auto px-4 py-6">

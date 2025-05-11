@@ -1,19 +1,18 @@
 import { axiosInstance } from "@/lib/axios";
-import { Product } from "@/types/product";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseFetchProductProps {
-  id: number;
+  id: string;
   onError?: (e: Error) => void;
 }
 
 export const UseFetchProduct = ({ id, onError }: UseFetchProductProps) => {
   return useQuery({
-    queryKey: ["product", id],
+    queryKey: ["productId", id],
     queryFn: async () => {
       try {
-        const { data } = await axiosInstance.get<Product>(`/products/${id}`);
-        return data;
+        const { data } = await axiosInstance.get(`/products/${id}`);
+        return data.data;
       } catch (error) {
         if (onError && error instanceof Error) {
           onError(error);
