@@ -37,6 +37,7 @@ const authHandler = NextAuth({
               email: user.email,
               role: user.role,
               image: user.photo_profile,
+              token: res.data.token,
             };
           }
 

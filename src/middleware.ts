@@ -1,26 +1,25 @@
-import authHandler from "@/auth";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { RequestWithAuth } from "@/types/next-auth";
 
-export default authHandler((req: NextRequest) => {
-  const request = req as RequestWithAuth;
+export default async function middleware(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  const { nextUrl } = request;
-  const isLoggedIn = !!request.auth?.user;
-  const protectedRoutes = ["/dashboard"];
+  const { pathname } = req.nextUrl;
 
-  if (!isLoggedIn && protectedRoutes.includes(nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  if (pathname.startsWith("/dashboard")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
 
-  if (isLoggedIn && nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
-  matcher: ["/dashboard"],
+  matcher: ["/dashboard/:path*"],
 };
