@@ -4,24 +4,31 @@ export type Product = {
   price: number;
   stock: number;
   description: string;
-  imageUrl: string | null;
+  imageUrl: {
+    url: string;
+    publicId: string;
+  };
   size: Size;
   variant: string[];
   createdAt: string;
   updatedAt: string;
   category: {
+    id: string;
     key: string;
     name: string;
   };
   type: {
+    id: string;
     key: string;
     name: string;
   };
   objective: {
+    id: string;
     key: string;
     name: string;
   };
   color: {
+    id: string;
     key: string;
     name: string;
   };
@@ -32,5 +39,4 @@ export enum Size {
   MEDIUM = "M",
   LARGE = "L",
   XL = "XL",
-  XXL = "XXL",
 }
