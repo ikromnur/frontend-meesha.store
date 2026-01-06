@@ -4,7 +4,9 @@ import { getToken } from "next-auth/jwt";
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 // GET /api/v1/dashboard/stats — proxy ke backend
 export async function GET(req: NextRequest) {
@@ -35,7 +37,7 @@ export async function GET(req: NextRequest) {
             json?.message || "Gagal mengambil statistik dashboard dari backend",
           ...json,
         },
-        { status },
+        { status }
       );
     }
 
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest) {
     console.error("[Proxy v1/stats] Error:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error", error },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -42,7 +42,10 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    const BACKEND_URL =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.BACKEND_URL ||
+      "http://localhost:4000";
     const { id } = params;
 
     const formData = await request.formData();
@@ -59,24 +62,32 @@ export async function PUT(
       cache: "no-store",
     });
 
-    const data = await response.json().catch(() => ({ message: "Unknown error" }));
+    const data = await response
+      .json()
+      .catch(() => ({ message: "Unknown error" }));
 
     if (!response.ok) {
       return NextResponse.json(
         {
           success: false,
-          message: data?.message || `Failed to update product (status ${response.status})`,
+          message:
+            data?.message ||
+            `Failed to update product (status ${response.status})`,
           error: data,
         },
-        { status: response.status },
+        { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Failed to proxy update product", error: String(error) },
-      { status: 500 },
+      {
+        success: false,
+        message: "Failed to proxy update product",
+        error: String(error),
+      },
+      { status: 500 }
     );
   }
 }
@@ -87,7 +98,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    const BACKEND_URL =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.BACKEND_URL ||
+      "http://localhost:4000";
     const { id } = params;
 
     const response = await fetch(`${BACKEND_URL}/api/products/${id}`, {
@@ -100,24 +114,32 @@ export async function DELETE(
       cache: "no-store",
     });
 
-    const data = await response.json().catch(() => ({ message: "Unknown error" }));
+    const data = await response
+      .json()
+      .catch(() => ({ message: "Unknown error" }));
 
     if (!response.ok) {
       return NextResponse.json(
         {
           success: false,
-          message: data?.message || `Failed to delete product (status ${response.status})`,
+          message:
+            data?.message ||
+            `Failed to delete product (status ${response.status})`,
           error: data,
         },
-        { status: response.status },
+        { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Failed to proxy delete product", error: String(error) },
-      { status: 500 },
+      {
+        success: false,
+        message: "Failed to proxy delete product",
+        error: String(error),
+      },
+      { status: 500 }
     );
   }
 }

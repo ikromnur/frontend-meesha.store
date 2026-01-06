@@ -4,7 +4,10 @@ import axios, { AxiosError } from "axios";
 
 export const dynamic = "force-dynamic";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 function getCandidatePaths(): string[] {
   const pathsEnv = process.env.ORDERS_USER_PATHS;
@@ -30,13 +33,19 @@ function getCandidatePaths(): string[] {
 export async function GET(request: NextRequest) {
   try {
     // Terima token dari NextAuth ATAU header Authorization (lokalStorage)
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET }).catch(() => null);
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    }).catch(() => null);
     const bearer = token?.accessToken
       ? `Bearer ${token.accessToken}`
       : request.headers.get("authorization") || "";
 
     if (!bearer) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const url = new URL(request.url);
@@ -69,7 +78,10 @@ export async function GET(request: NextRequest) {
         // 401/403: propagasi agar UI tahu masalah izin
         if (code === 401 || code === 403) {
           return NextResponse.json(
-            { success: false, message: ax.response?.data?.message || "Unauthorized" },
+            {
+              success: false,
+              message: ax.response?.data?.message || "Unauthorized",
+            },
             { status: code }
           );
         }
@@ -89,7 +101,10 @@ export async function GET(request: NextRequest) {
       );
     }
     return NextResponse.json(
-      { success: false, message: axiosError.message || "Failed to fetch orders" },
+      {
+        success: false,
+        message: axiosError.message || "Failed to fetch orders",
+      },
       { status: axiosError.response?.status || 500 }
     );
   }
@@ -97,13 +112,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET }).catch(() => null);
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    }).catch(() => null);
     const bearer = token?.accessToken
       ? `Bearer ${token.accessToken}`
       : request.headers.get("authorization") || "";
 
     if (!bearer) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -120,8 +141,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data, { status: 201 });
   } catch (error) {
     const axiosError = error as AxiosError<any>;
-    console.error("[POST /orders] Error:", axiosError.message, axiosError.response?.data);
-    
+    console.error(
+      "[POST /orders] Error:",
+      axiosError.message,
+      axiosError.response?.data
+    );
+
     if (axiosError.code === "ECONNREFUSED") {
       return NextResponse.json(
         { success: false, message: "Backend server is not running" },
@@ -132,8 +157,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: axiosError.response?.data?.message || axiosError.message || "Failed to create order",
-        ...axiosError.response?.data // Include full error details if available
+        message:
+          axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to create order",
+        ...axiosError.response?.data, // Include full error details if available
       },
       { status: axiosError.response?.status || 500 }
     );

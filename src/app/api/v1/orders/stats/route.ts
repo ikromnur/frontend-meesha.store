@@ -4,7 +4,9 @@ import { getToken } from "next-auth/jwt";
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
   try {

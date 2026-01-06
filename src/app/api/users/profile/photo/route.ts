@@ -4,7 +4,9 @@ import axios, { AxiosError } from "axios";
 
 // Backend base URL; default to localhost:4000 if not provided
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 // Upload profile photo
 export async function POST(request: NextRequest) {

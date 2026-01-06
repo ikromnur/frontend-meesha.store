@@ -4,7 +4,9 @@ import { getToken } from "next-auth/jwt";
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 // GET /api/v1/customers/today — daftar pelanggan baru hari ini
 export async function GET(req: NextRequest) {
@@ -32,7 +34,7 @@ export async function GET(req: NextRequest) {
           message: json?.message || "Gagal mengambil pelanggan baru hari ini",
           ...json,
         },
-        { status: res.status || 500 },
+        { status: res.status || 500 }
       );
     }
 
@@ -47,7 +49,11 @@ export async function GET(req: NextRequest) {
 
     const normalized = data.map((c) => {
       let avatarUrl = c.avatarUrl;
-      if (avatarUrl && typeof avatarUrl === "string" && !/^https?:\/\//.test(avatarUrl)) {
+      if (
+        avatarUrl &&
+        typeof avatarUrl === "string" &&
+        !/^https?:\/\//.test(avatarUrl)
+      ) {
         const needsSlash = !avatarUrl.startsWith("/");
         avatarUrl = `${BACKEND_URL}${needsSlash ? "/" : ""}${avatarUrl}`;
       }
@@ -59,7 +65,7 @@ export async function GET(req: NextRequest) {
     console.error("[Proxy v1/customers/today] Error:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error", error },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

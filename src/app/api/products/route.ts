@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,9 @@ export async function GET(request: NextRequest) {
 
     // Build query string from search params
     const queryString = searchParams.toString();
-    const url = `${BACKEND_URL}/api/products${queryString ? `?${queryString}` : ""}`;
+    const url = `${BACKEND_URL}/api/products${
+      queryString ? `?${queryString}` : ""
+    }`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -59,7 +64,8 @@ export async function GET(request: NextRequest) {
 // Proxy POST /api/products -> backend /api/products
 export async function POST(request: NextRequest) {
   try {
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    const BACKEND_URL =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
     const formData = await request.formData();
 
     const response = await fetch(`${BACKEND_URL}/api/products`, {
@@ -74,24 +80,32 @@ export async function POST(request: NextRequest) {
       cache: "no-store",
     });
 
-    const data = await response.json().catch(() => ({ message: "Unknown error" }));
+    const data = await response
+      .json()
+      .catch(() => ({ message: "Unknown error" }));
 
     if (!response.ok) {
       return NextResponse.json(
         {
           success: false,
-          message: data?.message || `Failed to create product (status ${response.status})`,
+          message:
+            data?.message ||
+            `Failed to create product (status ${response.status})`,
           error: data,
         },
-        { status: response.status },
+        { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Failed to proxy create product", error: String(error) },
-      { status: 500 },
+      {
+        success: false,
+        message: "Failed to proxy create product",
+        error: String(error),
+      },
+      { status: 500 }
     );
   }
 }

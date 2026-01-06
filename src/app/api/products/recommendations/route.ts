@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 // Forward recommendations API to backend, with safe fallback to popular
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 async function fetchJson(url: string, headers: Record<string, string>) {
   const res = await fetch(url, { method: "GET", headers, cache: "no-store" });
@@ -25,7 +28,11 @@ export async function GET(request: NextRequest) {
 
     // Primary: recommendations (SAW-backed)
     const recUrl = `${BACKEND_URL}/api/products/recommendations${search}`;
-    const { res: recRes, data: recData, isJson: recIsJson } = await fetchJson(recUrl, headers);
+    const {
+      res: recRes,
+      data: recData,
+      isJson: recIsJson,
+    } = await fetchJson(recUrl, headers);
 
     // If OK and JSON, return it unless empty
     if (recRes.ok && recIsJson) {
@@ -46,7 +53,11 @@ export async function GET(request: NextRequest) {
 
     // Fallback: popular (also SAW-backed per backend doc)
     const popUrl = `${BACKEND_URL}/api/products/popular${search}`;
-    const { res: popRes, data: popData, isJson: popIsJson } = await fetchJson(popUrl, headers);
+    const {
+      res: popRes,
+      data: popData,
+      isJson: popIsJson,
+    } = await fetchJson(popUrl, headers);
     if (popRes.ok && popIsJson) {
       return NextResponse.json(popData, { status: 200 });
     }
@@ -76,4 +87,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

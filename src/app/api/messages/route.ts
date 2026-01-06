@@ -3,12 +3,18 @@ import { getToken } from "next-auth/jwt";
 
 export const dynamic = "force-dynamic";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 // Proxy GET /api/messages -> backend /api/messages
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET }).catch(() => null);
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    }).catch(() => null);
     const bearer = token?.accessToken
       ? `Bearer ${token.accessToken}`
       : req.headers.get("authorization") || "";
@@ -30,25 +36,32 @@ export async function GET(req: NextRequest) {
       cache: "no-store",
     });
 
-    const data = await response.json().catch(() => ({ message: "Unknown error" }));
+    const data = await response
+      .json()
+      .catch(() => ({ message: "Unknown error" }));
 
     if (!response.ok) {
       return NextResponse.json(
         {
           success: false,
-          message: data?.message || `Failed to fetch messages (status ${response.status})`,
+          message:
+            data?.message ||
+            `Failed to fetch messages (status ${response.status})`,
           error: data,
         },
-        { status: response.status },
+        { status: response.status }
       );
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Failed to proxy messages", error: String(error) },
-      { status: 500 },
+      {
+        success: false,
+        message: "Failed to proxy messages",
+        error: String(error),
+      },
+      { status: 500 }
     );
   }
 }
-

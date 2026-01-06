@@ -4,7 +4,9 @@ import { getToken } from "next-auth/jwt";
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 // GET /api/v1/orders/today?status=...
 export async function GET(req: NextRequest) {
@@ -41,19 +43,22 @@ export async function GET(req: NextRequest) {
           message: json?.message || "Gagal mengambil pesanan hari ini",
           ...json,
         },
-        { status: res.status || 500 },
+        { status: res.status || 500 }
       );
     }
 
     // Normalisasi response menjadi { data: Array }
-    const data =
-      Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
+    const data = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+      ? json.data
+      : [];
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     console.error("[Proxy v1/orders/today] Error:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error", error },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -5,7 +5,9 @@ import { getToken } from "next-auth/jwt";
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,7 +16,7 @@ export async function GET(req: NextRequest) {
     if (!token?.accessToken) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -72,17 +74,16 @@ export async function GET(req: NextRequest) {
           message:
             "Backend server is not running. Please start the backend server.",
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
     return NextResponse.json(
       {
         success: false,
         message:
-          axiosError.response?.data?.message ||
-          "Failed to fetch discounts",
+          axiosError.response?.data?.message || "Failed to fetch discounts",
       },
-      { status: axiosError.response?.status || 500 },
+      { status: axiosError.response?.status || 500 }
     );
   }
 }
@@ -93,18 +94,19 @@ export async function POST(req: NextRequest) {
     if (!token?.accessToken) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
     const body = await req.json();
-    const { code, value, type, startDate, endDate, maxUsage, maxUsagePerUser } = body;
+    const { code, value, type, startDate, endDate, maxUsage, maxUsagePerUser } =
+      body;
 
     // Basic validation
     if (!code || !value || !type || !startDate || !endDate) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -119,16 +121,12 @@ export async function POST(req: NextRequest) {
       maxUsagePerUser,
     };
 
-    const response = await axios.post(
-      `${BACKEND_URL}/api/discounts`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token.accessToken}`,
-          "Content-Type": "application/json",
-        },
+    const response = await axios.post(`${BACKEND_URL}/api/discounts`, payload, {
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     return NextResponse.json(response.data, { status: 201 });
   } catch (error) {
@@ -137,10 +135,9 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         message:
-          axiosError.response?.data?.message ||
-          "Failed to create discount",
+          axiosError.response?.data?.message || "Failed to create discount",
       },
-      { status: axiosError.response?.status || 500 },
+      { status: axiosError.response?.status || 500 }
     );
   }
 }
