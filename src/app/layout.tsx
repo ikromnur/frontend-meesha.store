@@ -6,8 +6,8 @@ import "nprogress/nprogress.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Meesha Florist No.1 di Kebumen",
-    template: "%s | Meesha Florist No.1 di Kebumen",
+    default: "MEESHA.CO | FLORIST NO.1 DI KEBUMEN",
+    template: "%s | MEESHA.CO",
   },
   description: "Bouquet dan Florist Kebumen",
   icons: {
@@ -22,9 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased font-poppins"
-      >
+      <body className="antialiased font-poppins">
         <NextTopLoader
           color="#E76F51"
           initialPosition={0.2}
