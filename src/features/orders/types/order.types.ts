@@ -96,18 +96,28 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   unpaid: "Belum Dibayar",
   processing: "Proses",
-  ambil: "Ambil",
+  paid: "Sudah Dibayar",
+  success: "Pembayaran Sukses",
+  ambil: "Siap Diambil",
+  ready_for_pickup: "Siap Diambil",
   completed: "Selesai",
   cancelled: "Dibatalkan",
+  failed: "Pembayaran Gagal",
+  expired: "Kadaluarsa",
 };
 
 export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  unpaid: "bg-yellow-100 text-yellow-800 border-yellow-200", // Sama dengan pending
+  unpaid: "bg-yellow-100 text-yellow-800 border-yellow-200",
   processing: "bg-blue-100 text-blue-800 border-blue-200",
+  paid: "bg-blue-100 text-blue-800 border-blue-200",
+  success: "bg-blue-100 text-blue-800 border-blue-200",
   ambil: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  ready_for_pickup: "bg-indigo-100 text-indigo-800 border-indigo-200",
   completed: "bg-green-100 text-green-800 border-green-200",
   cancelled: "bg-red-100 text-red-800 border-red-200",
+  failed: "bg-red-100 text-red-800 border-red-200",
+  expired: "bg-red-100 text-red-800 border-red-200",
 };
 
 // Jadwal pickup terstruktur (durasi slot 1 jam)
