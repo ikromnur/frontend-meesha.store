@@ -645,7 +645,7 @@ export default function CheckoutPage() {
       fetchStatus(true);
     }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [merchantRef, transactionData?.status, autoRefresh]);
+  }, [merchantRef, transactionData, autoRefresh, fetchStatus]);
 
   async function applyDiscount() {
     if (!discountCode.trim()) return;

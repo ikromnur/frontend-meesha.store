@@ -162,10 +162,12 @@ export const AdminReviews = () => {
                     <TableCell className="max-w-[200px]">
                       <div className="flex items-center gap-3">
                         {review.productImage && (
-                          <img
+                          <Image
                             src={review.productImage}
                             alt={review.productName}
                             className="h-10 w-10 rounded-md object-cover"
+                            width={40}
+                            height={40}
                           />
                         )}
                         <span className="font-medium text-sm line-clamp-2">
@@ -257,7 +259,8 @@ export const AdminReviews = () => {
             <div className="space-y-2">
               <h4 className="font-medium text-sm">Ulasan Pengguna</h4>
               <div className="rounded-md bg-muted p-3 text-sm">
-                &quot;{selectedReview?.comment || "Tidak ada komentar tertulis"}&quot;
+                &quot;{selectedReview?.comment || "Tidak ada komentar tertulis"}
+                &quot;
               </div>
             </div>
             <div className="space-y-2">

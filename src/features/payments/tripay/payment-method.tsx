@@ -85,7 +85,7 @@ export function PaymentMethod({
         onSelect?.(next);
       }
     }
-  }, [tripayLoading, channels, paymentMethod, onSelect]);
+  }, [tripayLoading, channels, paymentMethod, onSelect, DEFAULT_METHOD]);
 
   const resolveLogo = (code: string, name: string): string | null => {
     const c = (code || "").toUpperCase();

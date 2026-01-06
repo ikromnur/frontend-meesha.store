@@ -679,7 +679,7 @@ function PaymentContent() {
       fetchStatus(true);
     }, POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [tripayReference, merchantRef, transactionData?.status, autoRefresh]);
+  }, [tripayReference, merchantRef, transactionData, autoRefresh, fetchStatus]);
 
   // Auto-redirect ke halaman Payment Result ketika pembayaran sukses
   useEffect(() => {
