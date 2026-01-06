@@ -11,18 +11,21 @@ import { useRouter } from "next/navigation";
 import { useGetMyOrders } from "@/features/orders/api/use-get-my-orders";
 import { useUpdateOrderStatus } from "@/features/orders/api/use-update-order-status";
 import { useToast } from "@/hooks/use-toast";
+import { CreditCard, Package, ShoppingBag, XCircle } from "lucide-react";
 
 const tabs: {
   label: string;
   value: "all" | OrderStatus;
   filter: (o: Order) => boolean;
+  emptyIcon: React.ReactNode;
+  emptyTitle: string;
+  emptyDescription: string;
 }[] = [
   {
     label: "Pending",
     value: "pending",
     filter: (o: Order) => {
       const s = o.status?.toLowerCase();
-      // Catch-all: pending, unpaid, or any unknown/missing status that isn't processed/completed/cancelled
       const isKnownOther = [
         "processing",
         "paid",
@@ -36,6 +39,9 @@ const tabs: {
       ].includes(s || "");
       return !isKnownOther;
     },
+    emptyIcon: <CreditCard className="w-12 h-12 text-muted-foreground/50" />,
+    emptyTitle: "Belum ada tagihan",
+    emptyDescription: "Yuk, checkout barang impianmu sekarang!",
   },
   {
     label: "Proses",
@@ -44,17 +50,26 @@ const tabs: {
       ["processing", "paid", "success", "ambil", "ready_for_pickup"].includes(
         o.status?.toLowerCase()
       ),
+    emptyIcon: <Package className="w-12 h-12 text-muted-foreground/50" />,
+    emptyTitle: "Tidak ada pesanan diproses",
+    emptyDescription: "Pesanan yang sedang disiapkan akan muncul di sini.",
   },
   {
     label: "Selesai",
     value: "completed",
     filter: (o: Order) => o.status === "completed",
+    emptyIcon: <ShoppingBag className="w-12 h-12 text-muted-foreground/50" />,
+    emptyTitle: "Belum ada pesanan selesai",
+    emptyDescription: "Riwayat belanjaan suksesmu akan tersimpan di sini.",
   },
   {
     label: "Dibatalkan",
     value: "cancelled",
     filter: (o: Order) =>
       ["cancelled", "failed", "expired"].includes(o.status?.toLowerCase()),
+    emptyIcon: <XCircle className="w-12 h-12 text-muted-foreground/50" />,
+    emptyTitle: "Tidak ada pesanan dibatalkan",
+    emptyDescription: "Semoga semua pesananmu lancar ya!",
   },
 ];
 
@@ -136,12 +151,16 @@ const HistoryPage = () => {
               <TabsContent
                 key={tab.value}
                 value={tab.value}
-                className="flex flex-col gap-5 min-h-[300px]"
+                className="flex flex-col gap-5"
               >
                 {isTabEmpty ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-                    <p>
-                      Tidak ada pesanan dengan status {tab.label.toLowerCase()}
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="mb-4">{tab.emptyIcon}</div>
+                    <h3 className="text-lg font-medium text-foreground">
+                      {tab.emptyTitle}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
+                      {tab.emptyDescription}
                     </p>
                   </div>
                 ) : (
