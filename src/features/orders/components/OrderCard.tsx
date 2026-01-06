@@ -142,7 +142,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
       }
     } catch {}
     return "";
-  }, [order]);
+  }, [order, initialPickup]);
 
   // init fields when toggling edit on
   const toggleEditPickup = () => {

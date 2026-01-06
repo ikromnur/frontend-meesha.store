@@ -20,6 +20,127 @@ import type { Cart } from "@/types/cart";
 import { CalendarIcon, Clock } from "lucide-react";
 import { Availability } from "@/types/product";
 
+const STORE_OPEN_MINUTES = 9 * 60; // 09:00
+const STORE_CLOSE_MINUTES = 20 * 60; // 20:00
+
+function minutesFromTime(t: string): number | null {
+  if (!t || !/^\d{2}:\d{2}$/.test(t)) return null;
+  const [hh, mm] = t.split(":").map((n) => Number(n));
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  return hh * 60 + mm;
+}
+
+function clampToStoreHours(d: Date): Date {
+  const res = new Date(d);
+  const minutes = res.getHours() * 60 + res.getMinutes();
+  if (minutes < STORE_OPEN_MINUTES) {
+    res.setHours(
+      Math.floor(STORE_OPEN_MINUTES / 60),
+      STORE_OPEN_MINUTES % 60,
+      0,
+      0
+    );
+  } else if (minutes > STORE_CLOSE_MINUTES) {
+    // Geser ke hari berikutnya jam buka
+    res.setDate(res.getDate() + 1);
+    res.setHours(
+      Math.floor(STORE_OPEN_MINUTES / 60),
+      STORE_OPEN_MINUTES % 60,
+      0,
+      0
+    );
+  }
+  return res;
+}
+
+// Normalisasi nilai availability (string bebas atau enum)
+function normalizeAvailability(val: any): Availability | undefined {
+  if (!val) return undefined;
+  if (
+    val === Availability.PO_5_DAY ||
+    val === Availability.PO_2_DAY ||
+    val === Availability.READY
+  )
+    return val as Availability;
+  const s = String(val).toUpperCase();
+  const compact = s.replace(/[^A-Z0-9+]/g, "");
+  if (
+    (compact.includes("PO") || compact.includes("PREORDER")) &&
+    compact.includes("5")
+  )
+    return Availability.PO_5_DAY;
+  if (
+    (compact.includes("PO") || compact.includes("PREORDER")) &&
+    compact.includes("2")
+  )
+    return Availability.PO_2_DAY;
+  if (compact.includes("READY")) return Availability.READY;
+  if (compact.includes("H+5")) return Availability.PO_5_DAY;
+  if (compact.includes("H+2")) return Availability.PO_2_DAY;
+  return undefined;
+}
+
+// Helper untuk mendapatkan lead time (hari) dari availability string/enum
+function getLeadDays(val: any): number {
+  if (val === Availability.PO_5_DAY) return 5;
+  if (val === Availability.PO_2_DAY) return 2;
+  if (val === Availability.READY) return 0;
+
+  const s = String(val || "").toUpperCase();
+  const compact = s.replace(/[^A-Z0-9+]/g, "");
+
+  if (compact.includes("READY")) return 0;
+
+  // Deteksi pola PO/PREORDER/H+ diikuti angka
+  if (
+    compact.includes("PO") ||
+    compact.includes("PREORDER") ||
+    compact.includes("H+")
+  ) {
+    const match = compact.match(/(\d+)/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    // Fallback jika terdeteksi PO tapi tanpa angka jelas, anggap 1 hari minimal
+    return 1;
+  }
+
+  return 0; // Default READY
+}
+
+function computeMinPickupAt(items: Cart[]): Date {
+  const now = new Date();
+  // Buffer READY: +3 jam (sesuai backend); PO: +n hari
+  const offsets = items.map((it) => {
+    const v1 = (it as any)?.availability;
+    const v2 = (it as any)?.product?.availability;
+    const days = getLeadDays(v1 ?? v2);
+
+    if (days > 0) return { days, hours: 0 };
+    return { days: 0, hours: 3 }; // READY (buffer 3 jam)
+  });
+  const maxDays = Math.max(...offsets.map((o) => o.days), 0);
+  const maxHours = Math.max(...offsets.map((o) => o.hours), 0);
+  const base = new Date(now);
+  base.setDate(base.getDate() + maxDays);
+
+  if (maxDays > 0) {
+    // Jika PO, reset waktu ke jam buka toko (09:00)
+    base.setHours(
+      Math.floor(STORE_OPEN_MINUTES / 60),
+      STORE_OPEN_MINUTES % 60,
+      0,
+      0
+    );
+  } else {
+    // Jika Ready, tambahkan buffer jam dari sekarang
+    base.setHours(base.getHours() + maxHours);
+  }
+
+  const clamped = clampToStoreHours(base);
+  return clamped;
+}
+
 export default function CheckoutPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -27,7 +148,10 @@ export default function CheckoutPage() {
 
   const { data: cartData = [], isLoading } = UseGetCart();
   // Normalisasi agar item bertipe jelas untuk linting/TypeScript
-  const cartItems: Cart[] = Array.isArray(cartData) ? (cartData as Cart[]) : [];
+  const cartItems: Cart[] = useMemo(
+    () => (Array.isArray(cartData) ? (cartData as Cart[]) : []),
+    [cartData]
+  );
 
   const [paymentInstructions, setPaymentInstructions] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
@@ -52,135 +176,6 @@ export default function CheckoutPage() {
   const [pickupDate, setPickupDate] = useState<Date | undefined>(undefined);
   const [pickupTime, setPickupTime] = useState<string>("");
   const [dateOpen, setDateOpen] = useState(false);
-
-  // Hitung minimum jadwal pengambilan berdasarkan item di keranjang
-  const STORE_OPEN_MINUTES = 9 * 60; // 09:00
-  const STORE_CLOSE_MINUTES = 20 * 60; // 20:00
-
-  function minutesFromTime(t: string): number | null {
-    if (!t || !/^\d{2}:\d{2}$/.test(t)) return null;
-    const [hh, mm] = t.split(":").map((n) => Number(n));
-    if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
-    return hh * 60 + mm;
-  }
-
-  function clampToStoreHours(d: Date): Date {
-    const res = new Date(d);
-    const minutes = res.getHours() * 60 + res.getMinutes();
-    if (minutes < STORE_OPEN_MINUTES) {
-      res.setHours(
-        Math.floor(STORE_OPEN_MINUTES / 60),
-        STORE_OPEN_MINUTES % 60,
-        0,
-        0
-      );
-    } else if (minutes > STORE_CLOSE_MINUTES) {
-      // Geser ke hari berikutnya jam buka
-      res.setDate(res.getDate() + 1);
-      res.setHours(
-        Math.floor(STORE_OPEN_MINUTES / 60),
-        STORE_OPEN_MINUTES % 60,
-        0,
-        0
-      );
-    }
-    return res;
-  }
-
-  // Normalisasi nilai availability (string bebas atau enum)
-  function normalizeAvailability(val: any): Availability | undefined {
-    if (!val) return undefined;
-    if (
-      val === Availability.PO_5_DAY ||
-      val === Availability.PO_2_DAY ||
-      val === Availability.READY
-    )
-      return val as Availability;
-    const s = String(val).toUpperCase();
-    const compact = s.replace(/[^A-Z0-9+]/g, "");
-    if (
-      (compact.includes("PO") || compact.includes("PREORDER")) &&
-      compact.includes("5")
-    )
-      return Availability.PO_5_DAY;
-    if (
-      (compact.includes("PO") || compact.includes("PREORDER")) &&
-      compact.includes("2")
-    )
-      return Availability.PO_2_DAY;
-    if (compact.includes("READY")) return Availability.READY;
-    if (compact.includes("H+5")) return Availability.PO_5_DAY;
-    if (compact.includes("H+2")) return Availability.PO_2_DAY;
-    return undefined;
-  }
-
-  function getItemAvailability(it: Cart): Availability | undefined {
-    const v1 = (it as any)?.availability;
-    const v2 = (it as any)?.product?.availability;
-    return normalizeAvailability(v1 ?? v2);
-  }
-
-  // Helper untuk mendapatkan lead time (hari) dari availability string/enum
-  function getLeadDays(val: any): number {
-    if (val === Availability.PO_5_DAY) return 5;
-    if (val === Availability.PO_2_DAY) return 2;
-    if (val === Availability.READY) return 0;
-
-    const s = String(val || "").toUpperCase();
-    const compact = s.replace(/[^A-Z0-9+]/g, "");
-
-    if (compact.includes("READY")) return 0;
-
-    // Deteksi pola PO/PREORDER/H+ diikuti angka
-    if (
-      compact.includes("PO") ||
-      compact.includes("PREORDER") ||
-      compact.includes("H+")
-    ) {
-      const match = compact.match(/(\d+)/);
-      if (match) {
-        return parseInt(match[1], 10);
-      }
-      // Fallback jika terdeteksi PO tapi tanpa angka jelas, anggap 1 hari minimal
-      return 1;
-    }
-
-    return 0; // Default READY
-  }
-
-  function computeMinPickupAt(items: Cart[]): Date {
-    const now = new Date();
-    // Buffer READY: +3 jam (sesuai backend); PO: +n hari
-    const offsets = items.map((it) => {
-      const v1 = (it as any)?.availability;
-      const v2 = (it as any)?.product?.availability;
-      const days = getLeadDays(v1 ?? v2);
-
-      if (days > 0) return { days, hours: 0 };
-      return { days: 0, hours: 3 }; // READY (buffer 3 jam)
-    });
-    const maxDays = Math.max(...offsets.map((o) => o.days), 0);
-    const maxHours = Math.max(...offsets.map((o) => o.hours), 0);
-    const base = new Date(now);
-    base.setDate(base.getDate() + maxDays);
-
-    if (maxDays > 0) {
-      // Jika PO, reset waktu ke jam buka toko (09:00)
-      // STORE_OPEN_MINUTES is defined in the outer scope
-      base.setHours(
-        Math.floor(STORE_OPEN_MINUTES / 60),
-        STORE_OPEN_MINUTES % 60,
-        0,
-        0
-      );
-    } else {
-      // Jika Ready, tambahkan buffer jam dari sekarang
-      base.setHours(base.getHours() + maxHours);
-    }
-
-    const clamped = clampToStoreHours(base);
-    return clamped;
-  }
 
   const minPickupAt = useMemo(() => computeMinPickupAt(cartItems), [cartItems]);
   const minPickupDateOnly = useMemo(() => {

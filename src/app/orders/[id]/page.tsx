@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatRupiah } from "@/helper/format-rupiah";
@@ -181,7 +182,13 @@ export default function OrderStatusPage({ params }: { params: { id: string } }) 
           <h2 className="text-lg font-medium mb-2">QRIS Pembayaran</h2>
           {qrImage ? (
             <div className="border rounded-md p-4 inline-block bg-white">
-              <img src={qrImage} alt="QRIS" className="w-56 h-56 object-contain" />
+              <Image
+                src={qrImage}
+                alt="QRIS"
+                width={224}
+                height={224}
+                className="w-56 h-56 object-contain"
+              />
             </div>
           ) : null}
           {qrString ? (

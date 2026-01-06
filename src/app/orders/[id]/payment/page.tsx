@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -294,9 +295,11 @@ export default function PaymentResultPage({
       {isSuccess && (
         <section className="text-center py-10">
           <div className="flex justify-center mb-6">
-            <img
+            <Image
               src="/Ilustrasi.png"
               alt="Payment Success Illustration"
+              width={300}
+              height={300}
               className="w-[300px] h-auto"
             />
           </div>

@@ -213,12 +213,101 @@ function PaymentContent() {
     if (ref) setTripayReference(ref);
   }, [searchParams]);
 
+  const fetchStatus = React.useCallback(
+    async (silent = false) => {
+      setStatusError(null);
+      // Gunakan reference Tripay bila tersedia; jika tidak, gunakan merchantRef via query agar backend dapat resolve
+      const keyRef = tripayReference ? String(tripayReference) : null;
+      const keyMerchant = !keyRef && merchantRef ? String(merchantRef) : null;
+      if (!keyRef && !keyMerchant) return;
+      try {
+        if (!silent) setIsRefreshing(true);
+        const headers: Record<string, string> = {};
+        const etagIdentity = keyRef ? `ref:${keyRef}` : `mref:${keyMerchant}`;
+        if (lastETag && etagKey === etagIdentity)
+          headers["If-None-Match"] = lastETag;
+        let res: any;
+        // Gunakan path-based fetching agar ditangani oleh [id]/route.ts dan backend controller
+        // Backend controller sudah cerdas mendeteksi apakah path adalah UUID (merchantRef) atau Reference Tripay
+        if (keyRef) {
+          res = await api.get(
+            `/api/payments/tripay/transaction/${encodeURIComponent(keyRef)}`,
+            { headers }
+          );
+        } else if (keyMerchant) {
+          res = await api.get(
+            `/api/payments/tripay/transaction/${encodeURIComponent(
+              keyMerchant
+            )}`,
+            { headers }
+          );
+        }
+        if (res.status === 304) {
+          setLastUpdatedAt(Date.now());
+          return;
+        }
+        const json = res.data || {};
+        if (res.status < 200 || res.status >= 300 || !json?.data)
+          throw new Error(
+            json?.message || `Gagal memuat status (HTTP ${res.status})`
+          );
+        const d = json.data;
+        setTransactionData((prev: any) => (prev ? { ...prev, ...d } : d));
+        setLastUpdatedAt(Date.now());
+        const etag = res.headers?.["etag"] || res.headers?.ETag || "";
+        if (etag) {
+          setLastETag(etag);
+          setEtagKey(etagIdentity);
+        }
+        // Jika backend mengembalikan reference Tripay, simpan untuk konsistensi polling berikutnya
+        if (d?.reference && !tripayReference) {
+          setTripayReference(String(d.reference));
+        }
+        if (d?.expired_time) {
+          const expMs = Number(d.expired_time) * 1000;
+          setRemainingMs(Math.max(expMs - Date.now(), 0));
+        } else if (d?.expired_at) {
+          const ea = d.expired_at;
+          const expMs =
+            typeof ea === "number" ? ea * 1000 : new Date(String(ea)).getTime();
+          if (expMs) setRemainingMs(Math.max(expMs - Date.now(), 0));
+        }
+        if (shouldStopPolling(d?.status)) setAutoRefresh(false);
+      } catch (e: any) {
+        const message = e?.message ?? String(e);
+        // Ignore 404 (Not Found) as it simply means transaction hasn't been created yet
+        if (e?.response?.status === 404 || /404/.test(message)) {
+          setStatusError(null);
+        } else {
+          setStatusError(message);
+          if (!silent) {
+            toast({
+              title: "Gagal memuat status",
+              description: message,
+              variant: "destructive",
+            });
+          }
+        }
+      } finally {
+        if (!silent) setIsRefreshing(false);
+      }
+    },
+    [
+      tripayReference,
+      merchantRef,
+      lastETag,
+      etagKey,
+      toast,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    ]
+  );
+
   // Auto-restore status transaksi jika merchantRef sudah ada
   useEffect(() => {
     if (merchantRef && !transactionData) {
       fetchStatus(true);
     }
-  }, [merchantRef, transactionData]);
+  }, [merchantRef, transactionData, fetchStatus]);
 
   // Countdown aktif untuk status non-terminal (bukan PAID/EXPIRED/FAILED) ketika expiry tersedia
   useEffect(() => {
@@ -255,83 +344,6 @@ function PaymentContent() {
     const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
     const ss = String(s % 60).padStart(2, "0");
     return `${hh}:${mm}:${ss}`;
-  }
-
-  async function fetchStatus(silent = false) {
-    setStatusError(null);
-    // Gunakan reference Tripay bila tersedia; jika tidak, gunakan merchantRef via query agar backend dapat resolve
-    const keyRef = tripayReference ? String(tripayReference) : null;
-    const keyMerchant = !keyRef && merchantRef ? String(merchantRef) : null;
-    if (!keyRef && !keyMerchant) return;
-    try {
-      if (!silent) setIsRefreshing(true);
-      const headers: Record<string, string> = {};
-      const etagIdentity = keyRef ? `ref:${keyRef}` : `mref:${keyMerchant}`;
-      if (lastETag && etagKey === etagIdentity)
-        headers["If-None-Match"] = lastETag;
-      let res: any;
-      // Gunakan path-based fetching agar ditangani oleh [id]/route.ts dan backend controller
-      // Backend controller sudah cerdas mendeteksi apakah path adalah UUID (merchantRef) atau Reference Tripay
-      if (keyRef) {
-        res = await api.get(
-          `/api/payments/tripay/transaction/${encodeURIComponent(keyRef)}`,
-          { headers }
-        );
-      } else if (keyMerchant) {
-        res = await api.get(
-          `/api/payments/tripay/transaction/${encodeURIComponent(keyMerchant)}`,
-          { headers }
-        );
-      }
-      if (res.status === 304) {
-        setLastUpdatedAt(Date.now());
-        return;
-      }
-      const json = res.data || {};
-      if (res.status < 200 || res.status >= 300 || !json?.data)
-        throw new Error(
-          json?.message || `Gagal memuat status (HTTP ${res.status})`
-        );
-      const d = json.data;
-      setTransactionData((prev: any) => (prev ? { ...prev, ...d } : d));
-      setLastUpdatedAt(Date.now());
-      const etag = res.headers?.["etag"] || res.headers?.ETag || "";
-      if (etag) {
-        setLastETag(etag);
-        setEtagKey(etagIdentity);
-      }
-      // Jika backend mengembalikan reference Tripay, simpan untuk konsistensi polling berikutnya
-      if (d?.reference && !tripayReference) {
-        setTripayReference(String(d.reference));
-      }
-      if (d?.expired_time) {
-        const expMs = Number(d.expired_time) * 1000;
-        setRemainingMs(Math.max(expMs - Date.now(), 0));
-      } else if (d?.expired_at) {
-        const ea = d.expired_at;
-        const expMs =
-          typeof ea === "number" ? ea * 1000 : new Date(String(ea)).getTime();
-        if (expMs) setRemainingMs(Math.max(expMs - Date.now(), 0));
-      }
-      if (shouldStopPolling(d?.status)) setAutoRefresh(false);
-    } catch (e: any) {
-      const message = e?.message ?? String(e);
-      // Ignore 404 (Not Found) as it simply means transaction hasn't been created yet
-      if (e?.response?.status === 404 || /404/.test(message)) {
-        setStatusError(null);
-      } else {
-        setStatusError(message);
-        if (!silent) {
-          toast({
-            title: "Gagal memuat status",
-            description: message,
-            variant: "destructive",
-          });
-        }
-      }
-    } finally {
-      if (!silent) setIsRefreshing(false);
-    }
   }
 
   async function handleContinue(selectedCode: string) {
