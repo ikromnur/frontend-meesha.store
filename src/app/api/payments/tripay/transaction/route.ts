@@ -123,6 +123,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Forward ke backend
+    console.log(
+      `[Tripay Proxy] Forwarding to ${BACKEND_URL}/api/payments/tripay/closed`,
+      { merchant_ref: merchantRef }
+    );
     const res = await fetch(`${BACKEND_URL}/api/payments/tripay/closed`, {
       method: "POST",
       headers: {
@@ -134,6 +138,8 @@ export async function POST(req: NextRequest) {
     });
 
     const json = await res.json().catch(() => ({}));
+    console.log(`[Tripay Proxy] Backend response: ${res.status}`, json);
+
     if (!res.ok) {
       // --- MOCK FALLBACK FOR > 5M (SANDBOX LIMIT) ---
       // Jika amount > 5M dan Tripay gagal (kemungkinan limit Sandbox),

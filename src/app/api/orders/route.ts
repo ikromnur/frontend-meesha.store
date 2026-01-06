@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
     }
 
     const url = new URL(request.url);
-    const status = url.searchParams.get("status") || "all";
+    const statusParam = url.searchParams.get("status");
+    const status = statusParam === "all" ? undefined : statusParam || undefined;
     const search = url.searchParams.get("search") || undefined;
     const date = url.searchParams.get("date") || undefined;
 
@@ -59,6 +60,13 @@ export async function GET(request: NextRequest) {
     for (const candidate of candidates) {
       try {
         const endpoint = `${BACKEND_URL}${candidate}`;
+        console.log(
+          `[Orders Proxy] Try: ${endpoint} params=${JSON.stringify({
+            status,
+            search,
+            date,
+          })}`
+        );
         const response = await axios.get(endpoint, {
           headers: {
             Authorization: bearer,
@@ -66,11 +74,17 @@ export async function GET(request: NextRequest) {
           },
           params: { status, search, date },
         });
+        console.log(
+          `[Orders Proxy] Success: ${endpoint} -> items=${
+            Array.isArray(response.data?.data) ? response.data.data.length : "?"
+          }`
+        );
         // Jika berhasil, teruskan payload apa adanya agar client bisa menormalkan
         return NextResponse.json(response.data, { status: 200 });
       } catch (err) {
         const ax = err as AxiosError<any>;
         const code = ax.response?.status;
+        console.log(`[Orders Proxy] Fail: ${candidate} status=${code}`);
         // 404/405: coba kandidat berikutnya
         if (code === 404 || code === 405) {
           continue;
