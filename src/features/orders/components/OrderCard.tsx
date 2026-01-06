@@ -294,6 +294,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({
                 Bayar
               </Button>
 
+              <Button
+                onClick={() => onCancel?.(order.order_id)}
+                className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                variant="outline"
+              >
+                Batal Pesanan
+              </Button>
+
               <div className="space-y-2">
                 {pickupDisplay ? (
                   <div className="flex items-center justify-between text-sm">

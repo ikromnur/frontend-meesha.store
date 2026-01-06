@@ -46,6 +46,7 @@ export const useUpdateOrderStatus = ({
     onSuccess: () => {
       // Invalidate and refetch orders
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       queryClient.invalidateQueries({ queryKey: ["order-stats"] });
       if (onSuccess) {
         onSuccess();

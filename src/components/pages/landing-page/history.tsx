@@ -9,6 +9,8 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useGetMyOrders } from "@/features/orders/api/use-get-my-orders";
+import { useUpdateOrderStatus } from "@/features/orders/api/use-update-order-status";
+import { useToast } from "@/hooks/use-toast";
 
 const tabs: {
   label: string;
@@ -30,6 +32,7 @@ const tabs: {
         "completed",
         "cancelled",
         "failed",
+        "expired",
       ].includes(s || "");
       return !isKnownOther;
     },
@@ -50,7 +53,8 @@ const tabs: {
   {
     label: "Dibatalkan",
     value: "cancelled",
-    filter: (o: Order) => o.status === "cancelled",
+    filter: (o: Order) =>
+      ["cancelled", "failed", "expired"].includes(o.status?.toLowerCase()),
   },
 ];
 
@@ -58,6 +62,7 @@ const HistoryPage = () => {
   const { data: session } = useSession();
   const { params, updateParams } = useUpdateSearchParams();
   const router = useRouter();
+  const { toast } = useToast();
 
   const currentTab = tabs.some((t) => t.value === params.filter)
     ? (params.filter as string)
@@ -65,6 +70,28 @@ const HistoryPage = () => {
 
   // Gunakan endpoint proxy /api/orders untuk pengguna biasa (non-admin)
   const { data: orders = [], isLoading } = useGetMyOrders();
+
+  const { mutate: updateStatus } = useUpdateOrderStatus({
+    onSuccess: () => {
+      toast({
+        title: "Berhasil",
+        description: "Pesanan berhasil dibatalkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Gagal",
+        description: error?.message || "Gagal membatalkan pesanan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancel = (orderId: string) => {
+    if (confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+      updateStatus({ order_id: orderId, status: "cancelled" });
+    }
+  };
 
   // Debugging: Log orders to console to help troubleshoot missing items
   if (orders.length > 0) {
@@ -127,7 +154,11 @@ const HistoryPage = () => {
                   </div>
                 ) : (
                   filteredOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onCancel={handleCancel}
+                    />
                   ))
                 )}
               </TabsContent>
