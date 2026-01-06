@@ -6,12 +6,12 @@ import "nprogress/nprogress.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Bouquet & Florist Kebumen",
-    template: "%s | Bouquet & Florist Kebumen",
+    default: "Meesha Florist No.1 di Kebumen",
+    template: "%s | Meesha Florist No.1 di Kebumen",
   },
   description: "Bouquet dan Florist Kebumen",
   icons: {
-    icon: "#",
+    icon: "/icon.svg",
   },
 };
 
