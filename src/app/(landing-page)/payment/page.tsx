@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import PaymentMethod from "@/features/payments/tripay/payment-method";
 import { UseGetCart } from "@/features/cart/api/use-get-cart";
 import api from "@/lib/api";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1007,5 +1007,13 @@ export default function PaymentPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>Loading payment page...</div>}>
+      <PaymentContent />
+    </Suspense>
   );
 }
