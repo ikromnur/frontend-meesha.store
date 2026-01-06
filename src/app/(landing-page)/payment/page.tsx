@@ -569,7 +569,7 @@ function PaymentContent() {
         order_items: baseItems,
         return_url: `${
           typeof window !== "undefined" ? window.location.origin : ""
-        }/orders/${newMerchantRef}`,
+        }${session ? "/dashboard/orders" : `/orders/${newMerchantRef}`}`,
         // Setel masa berlaku transaksi 60 menit
         expired_time: Math.floor(Date.now() / 1000) + 60 * 60,
         discountCode: discount?.code,

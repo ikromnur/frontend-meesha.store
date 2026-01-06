@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "MEESHA.CO | FLORIST NO.1 DI KEBUMEN",
     template: "%s | MEESHA.CO",
   },
-  description: "Bouquet dan Florist Kebumen",
+  description: "Melayani Bunga dan Bouquet Kebumen",
   icons: {
     icon: "/icon.svg",
   },
