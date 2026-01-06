@@ -18,12 +18,29 @@ const tabs: {
   {
     label: "Pending",
     value: "pending",
-    filter: (o: Order) => ["pending", "unpaid"].includes(o.status?.toLowerCase()),
+    filter: (o: Order) => {
+      const s = o.status?.toLowerCase();
+      // Catch-all: pending, unpaid, or any unknown/missing status that isn't processed/completed/cancelled
+      const isKnownOther = [
+        "processing",
+        "paid",
+        "success",
+        "ambil",
+        "ready_for_pickup",
+        "completed",
+        "cancelled",
+        "failed",
+      ].includes(s || "");
+      return !isKnownOther;
+    },
   },
   {
     label: "Proses",
     value: "processing",
-    filter: (o: Order) => ["processing", "paid", "success"].includes(o.status?.toLowerCase()),
+    filter: (o: Order) =>
+      ["processing", "paid", "success", "ambil", "ready_for_pickup"].includes(
+        o.status?.toLowerCase()
+      ),
   },
   {
     label: "Selesai",
@@ -48,6 +65,11 @@ const HistoryPage = () => {
 
   // Gunakan endpoint proxy /api/orders untuk pengguna biasa (non-admin)
   const { data: orders = [], isLoading } = useGetMyOrders();
+
+  // Debugging: Log orders to console to help troubleshoot missing items
+  if (orders.length > 0) {
+    console.log("My Orders:", orders);
+  }
 
   const handleTabChange = (value: string) => {
     updateParams({ filter: value });
