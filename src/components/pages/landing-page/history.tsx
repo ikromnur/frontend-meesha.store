@@ -117,20 +117,9 @@ const HistoryPage = () => {
             <p className="text-muted-foreground">Memuat riwayat pesanan...</p>
           </div>
         </div>
-      ) : !orders || orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="text-5xl mb-4">📦</div>
-          <h3 className="text-xl font-semibold mb-2">Belum Ada Pesanan</h3>
-          <p className="text-muted-foreground mb-4">
-            Anda belum memiliki riwayat pesanan
-          </p>
-          <Button onClick={() => router.push("/products")}>
-            Mulai Belanja
-          </Button>
-        </div>
       ) : (
         <Tabs value={currentTab} onValueChange={handleTabChange}>
-          <TabsList className="mb-5">
+          <TabsList className="mb-5 w-full justify-start overflow-x-auto">
             {tabs.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
@@ -140,17 +129,34 @@ const HistoryPage = () => {
 
           {tabs.map((tab) => {
             const filteredOrders = orders.filter(tab.filter);
+            // Jika tab aktif dan datanya kosong, tampilkan Empty State
+            const isTabEmpty = filteredOrders.length === 0;
+
             return (
               <TabsContent
                 key={tab.value}
                 value={tab.value}
-                className="flex flex-col gap-5"
+                className="flex flex-col gap-5 min-h-[300px]"
               >
-                {filteredOrders.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>
-                      Tidak ada pesanan dengan status {tab.label.toLowerCase()}
+                {isTabEmpty ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-lg">
+                    <div className="text-4xl mb-3">📦</div>
+                    <h3 className="text-lg font-medium mb-1">
+                      Tidak ada pesanan {tab.label.toLowerCase()}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {tab.value === "pending"
+                        ? "Anda tidak memiliki pesanan yang menunggu pembayaran"
+                        : `Belum ada riwayat pesanan di status ${tab.label}`}
                     </p>
+                    {orders.length === 0 && tab.value === "pending" && (
+                      <Button
+                        onClick={() => router.push("/products")}
+                        variant="outline"
+                      >
+                        Mulai Belanja
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   filteredOrders.map((order) => (

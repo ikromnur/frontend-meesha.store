@@ -22,10 +22,10 @@ function getCandidatePaths(): string[] {
     return [pathEnv];
   }
   return [
-    "/api/orders",
     "/api/user/orders",
     "/orders/me",
     "/user/orders",
+    "/api/orders",
     "/orders",
   ];
 }
