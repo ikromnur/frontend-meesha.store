@@ -25,6 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Star, MessageCircle, User } from "lucide-react";
+import Image from "next/image";
 
 // Tipe data yang diharapkan dari endpoint admin
 interface AdminRatingItem {
