@@ -117,6 +117,7 @@ function PaymentContent() {
   const [etagKey, setEtagKey] = useState<string | null>(null);
   const [hasCancelled, setHasCancelled] = useState<boolean>(false);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [hasSynced, setHasSynced] = useState(false);
   const POLL_INTERVAL_MS = 5000;
 
   // Ringkasan jadwal pengambilan (Asia/Jakarta)
@@ -308,6 +309,30 @@ function PaymentContent() {
       fetchStatus(true);
     }
   }, [merchantRef, transactionData, fetchStatus]);
+
+  // Auto-sync status order di backend jika Tripay sudah UNPAID tapi order mungkin belum PENDING
+  useEffect(() => {
+    if (
+      !merchantRef ||
+      !transactionData ||
+      hasSynced ||
+      !["UNPAID", "PENDING"].includes(
+        String(transactionData.status).toUpperCase()
+      )
+    ) {
+      return;
+    }
+
+    // Lakukan sync sekali saja per load halaman
+    setHasSynced(true);
+
+    // Kirim PATCH status=pending
+    api
+      .patch(`/api/orders/${encodeURIComponent(merchantRef)}`, {
+        status: "pending",
+      })
+      .catch(() => {});
+  }, [merchantRef, transactionData, hasSynced]);
 
   // Countdown aktif untuk status non-terminal (bukan PAID/EXPIRED/FAILED) ketika expiry tersedia
   useEffect(() => {
@@ -615,12 +640,17 @@ function PaymentContent() {
       setTransactionData(data);
       setMerchantRef(newMerchantRef);
       // Persist jadwal ambil ke Order di backend (PATCH) agar dashboard menampilkan Waktu Ambil
+      // Sekalian update status ke 'pending' agar muncul di riwayat (jika backend belum update)
       try {
-        if (pickupAt && newMerchantRef) {
+        if (newMerchantRef) {
+          const patchBody: any = { status: "pending" };
+          if (pickupAt) patchBody.pickupAt = pickupAt;
+
           await api
-            .patch(`/api/orders/${encodeURIComponent(newMerchantRef)}`, {
-              pickupAt,
-            })
+            .patch(
+              `/api/orders/${encodeURIComponent(newMerchantRef)}`,
+              patchBody
+            )
             .catch(() => {});
         }
       } catch {}
