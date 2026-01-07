@@ -11,6 +11,7 @@ import type { LoginFormSchema } from "@/features/auth/form/login";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 type LoginFormProps = {
   onLogin: (data: LoginFormSchema) => void;
@@ -18,7 +19,7 @@ type LoginFormProps = {
 };
 
 const LoginForm = ({ onLogin, loginLoading }: LoginFormProps) => {
-  const [showPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { control, handleSubmit } = useFormContext<LoginFormSchema>();
 
   return (
@@ -55,6 +56,18 @@ const LoginForm = ({ onLogin, loginLoading }: LoginFormProps) => {
                   placeholder="Masukkan Password"
                   {...field}
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </FormControl>
             <FormMessage />

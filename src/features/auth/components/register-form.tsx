@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { RegisterFormSchema } from "@/features/auth/form/register";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 
 type RegisterFormProps = {
@@ -18,7 +19,8 @@ type RegisterFormProps = {
 };
 
 const RegisterForm = ({ onRegister, registerLoading }: RegisterFormProps) => {
-  const [showPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { control, handleSubmit } = useFormContext<RegisterFormSchema>();
 
@@ -100,6 +102,18 @@ const RegisterForm = ({ onRegister, registerLoading }: RegisterFormProps) => {
                   placeholder="Masukkan Password"
                   {...field}
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </FormControl>
             <FormMessage />
@@ -116,10 +130,22 @@ const RegisterForm = ({ onRegister, registerLoading }: RegisterFormProps) => {
             <FormControl>
               <div className="relative">
                 <Input
-                  type={showPassword ? "text" : "password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Konfirmasi Password"
                   {...field}
                 />
+                <button
+                  type="button"
+                  aria-label={showConfirmPassword ? "Sembunyikan konfirmasi password" : "Tampilkan konfirmasi password"}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </FormControl>
             <FormMessage />
