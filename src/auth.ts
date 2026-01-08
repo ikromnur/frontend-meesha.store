@@ -14,84 +14,41 @@ const authHandler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
+        // Gunakan URL internal untuk komunikasi server-ke-server,
+        // atau URL publik sebagai cadangan.
+        const backendUrl =
+          process.env.INTERNAL_BACKEND_URL ||
+          process.env.NEXT_PUBLIC_BACKEND_URL;
+
         try {
-          // Paksa gunakan endpoint backend langsung untuk proses login Credentials
-          const backendUrl =
-            process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+          const res = await fetch(`${backendUrl}/api/auth/login`, {
+            // Pastikan path-nya benar, mungkin /api/auth/login
+            method: "POST",
+            body: JSON.stringify(credentials),
+            headers: { "Content-Type": "application/json" },
+          });
 
-          const loginUrl = `${backendUrl}/api/auth/login`; // Endpoint backend
+          const data = await res.json();
 
-          const res = await axios.post(
-            loginUrl,
-            {
-              email: credentials?.email,
-              password: credentials?.password,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              // Pastikan URL absolut diizinkan di lingkungan Next.js server
-              transitional: { clarifyTimeoutError: true },
-              timeout: 15000,
-            },
+          // Jika backend mengembalikan error atau status tidak OK
+          if (!res.ok || data.error) {
+            throw new Error(data.message || "Email atau password tidak valid.");
+          }
+
+          // Jika login berhasil, kembalikan data user
+          // Next-Auth expects the user object to be returned directly
+          if (data) {
+            return data;
+          }
+
+          return null; // Gagal login
+        } catch (error: any) {
+          // Tangkap error jaringan atau error lain dari fetch/backend
+          console.error("Authorize error:", error);
+          // Propagate the error message to the client
+          throw new Error(
+            error.message || "Terjadi masalah saat menghubungi server.",
           );
-
-          const user = res.data.data;
-
-          if (user) {
-            // Jika akun belum terverifikasi, blok login dengan error khusus
-            const isVerified = user.isVerified ?? user.is_verified ?? true;
-            if (!isVerified) {
-              // Sertakan email dalam pesan error agar client bisa redirect otomatis ke OTP
-              const emailForError = credentials?.email || user.email || "";
-              throw new Error(`USER_NOT_VERIFIED:${emailForError}`);
-            }
-            // Normalisasi field nama lengkap, username, dan nomor HP dari berbagai kemungkinan nama field backend
-            const normalizedName =
-              user.name ??
-              user.full_name ??
-              user.fullName ??
-              user.nama_lengkap ??
-              user.namaLengkap ??
-              "";
-            const normalizedUsername =
-              user.username ?? user.user_name ?? user.uname ?? undefined;
-            const normalizedPhone =
-              user.phone ??
-              user.noHp ??
-              user.no_hp ??
-              user.phone_number ??
-              undefined;
-            // Normalize photo URL: if backend returns a relative path, prefix BACKEND_URL
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-            const rawPhoto: string | undefined = user.photo_profile;
-            const normalizedPhoto = rawPhoto
-              ? /^https?:\/\//.test(rawPhoto)
-                ? rawPhoto
-                : `${backendUrl}${rawPhoto.startsWith("/") ? "" : "/"}${rawPhoto}`
-              : undefined;
-            return {
-              id: user.id,
-              name: normalizedName,
-              email: user.email,
-              role: user.role,
-              image: normalizedPhoto,
-              token: res.data.token,
-              username: normalizedUsername,
-              phone: normalizedPhone,
-            };
-          }
-
-          return null;
-        } catch (err: any) {
-          // Propagasi error khusus agar UI dapat menampilkan pesan yang sesuai
-          if (typeof err?.message === "string" && err.message.startsWith("USER_NOT_VERIFIED")) {
-            // Biarkan error naik ke client (signIn) untuk ditangani
-            throw err;
-          }
-          console.error("Login failed:", err);
-          return null;
         }
       },
     }),
