@@ -17,7 +17,7 @@ export const UseGetCart = (params?: UseGetCartProps) => {
           typeof window !== "undefined" ? window.location.origin : "";
         const url = `${origin}/api/carts`;
         const { data } = await axiosInstance.get(url);
-        // Normalize response: accept either an array or an object containing an array
+        // Normalisasi respons: terima baik berupa array atau objek yang berisi array
         const d: any = data;
         const rawItems = Array.isArray(d)
           ? d
@@ -47,6 +47,29 @@ export const UseGetCart = (params?: UseGetCartProps) => {
           )
             return Size.EXTRA_LARGE;
           return Size.SMALL;
+        };
+        const normalizeAvailability = (val: any): Availability | undefined => {
+          if (!val) return undefined;
+          const s = String(val).toUpperCase().trim();
+          if (s === Availability.READY) return Availability.READY;
+          if (s === Availability.PO_2_DAY) return Availability.PO_2_DAY;
+          if (s === Availability.PO_5_DAY) return Availability.PO_5_DAY;
+          // Fallback with heuristics
+          const compact = s.replace(/[^A-Z0-9+]/g, "");
+          if (
+            (compact.includes("PO") || compact.includes("PREORDER")) &&
+            compact.includes("5")
+          )
+            return Availability.PO_5_DAY;
+          if (
+            (compact.includes("PO") || compact.includes("PREORDER")) &&
+            compact.includes("2")
+          )
+            return Availability.PO_2_DAY;
+          if (compact.includes("READY")) return Availability.READY;
+          if (compact.includes("H+5")) return Availability.PO_5_DAY;
+          if (compact.includes("H+2")) return Availability.PO_2_DAY;
+          return undefined;
         };
 
         const items: Cart[] = (rawItems as any[]).map((item) => {
@@ -81,7 +104,9 @@ export const UseGetCart = (params?: UseGetCartProps) => {
             price,
             quantity: qty,
             size: normalizeSize(item?.size ?? item?.product?.size ?? "S"),
-            availability,
+            availability: normalizeAvailability(
+              availability ?? item?.preorderDays ?? item?.leadTimeDays
+            ),
           };
         });
         return items;
