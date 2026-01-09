@@ -22,8 +22,8 @@ const authHandler = NextAuth({
           process.env.NEXT_PUBLIC_BACKEND_URL;
 
         try {
-          const res = await fetch(`${backendUrl}/api/auth/login`, {
-            // Pastikan path-nya benar, mungkin /api/auth/login
+          // FIX: Added /v1/ to the path to match the new backend route
+          const res = await fetch(`${backendUrl}/api/v1/auth/login`, {
             method: "POST",
             body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },
