@@ -70,9 +70,9 @@ function normalizeSawPayload(payload: any): {
     ? raw.data.results
     : [];
 
-  const items: Product[] = list.map((it: any) =>
-    it?.product ? it.product : it
-  ) as Product[];
+  const items: Product[] = (
+    list.map((it: any) => (it?.product ? it.product : it)) as Product[]
+  ).filter((p) => !p.name.toLowerCase().includes("tester"));
   const ids = items.map((p) => p.id);
   return { items, ids, raw };
 }

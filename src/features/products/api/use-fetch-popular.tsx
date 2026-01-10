@@ -60,7 +60,7 @@ function normalizePopularPayload(raw: any): PopularProduct[] {
       views_30d: Number(p?.views_30d ?? p?.viewsLast30Days ?? p?.views ?? 0) || undefined,
     };
     return product;
-  });
+  }).filter((p) => !p.name.toLowerCase().includes("tester"));
 }
 
 export const UseFetchPopularProducts = ({ limit = 10, onError }: UseFetchPopularProps) => {

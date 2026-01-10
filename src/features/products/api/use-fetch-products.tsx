@@ -80,7 +80,7 @@ export const UseFetchProducts = ({
         const d: any = data;
         const payload = d?.data && typeof d.data === "object" ? d.data : d;
         const normalized = {
-          data: Array.isArray(payload?.data)
+          data: (Array.isArray(payload?.data)
             ? payload.data
             : Array.isArray(d?.data)
             ? d.data
@@ -90,7 +90,14 @@ export const UseFetchProducts = ({
             ? d.data.items
             : Array.isArray(d?.data?.data)
             ? d.data.data
-            : [],
+            : []
+          ).filter(
+            (p: any) =>
+              !(
+                p?.name?.toLowerCase().includes("tester") ||
+                p?.productName?.toLowerCase().includes("tester")
+              )
+          ),
           page: Number(payload?.page ?? d?.page ?? 1),
           totalPages: Number(payload?.totalPages ?? d?.totalPages ?? 1),
           totalItems: Number(
