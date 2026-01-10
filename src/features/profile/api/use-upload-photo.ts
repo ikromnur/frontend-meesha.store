@@ -17,11 +17,18 @@ export const useUploadPhoto = ({
       const formData = new FormData();
       formData.append("photo", file);
 
-      const { data } = await axiosInstance.post("/profile/photo", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Send to Next.js Proxy /api/profile/photo
+      // Use baseURL: "" to prevent prepending /api/v1
+      const { data } = await axiosInstance.post(
+        "/api/profile/photo",
+        formData,
+        {
+          baseURL: "",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       return data.data;
     },
     onSuccess: () => {

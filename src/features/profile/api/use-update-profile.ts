@@ -37,7 +37,11 @@ export const useUpdateProfile = ({
           ...(payload.phone !== undefined && { phone: payload.phone }),
         };
 
-        const { data } = await axiosInstance.put("/profile", body);
+        // Send JSON to /api/profile (Next.js API -> Backend PATCH)
+        // Use baseURL: "" to force using Next.js Proxy
+        const { data } = await axiosInstance.put("/api/profile", body, {
+          baseURL: "",
+        });
 
         console.log("[useUpdateProfile] Update successful");
         return data.data;

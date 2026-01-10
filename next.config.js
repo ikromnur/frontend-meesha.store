@@ -50,6 +50,11 @@ const nextConfig = {
         source: "/api/notifications/:path*",
         destination: `${backend}/api/v1/notifications/:path*`,
       },
+      // Proxy static uploads from backend
+      {
+        source: "/uploads/:path*",
+        destination: `${backend}/uploads/:path*`,
+      },
       // Biarkan /api/orders ditangani oleh API Route Next (`src/app/api/orders/route.ts`)
     ];
   },

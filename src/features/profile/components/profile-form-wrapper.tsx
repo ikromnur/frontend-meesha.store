@@ -9,11 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/lib/axios";
 import ProfileForm from "./profile-form";
 import { profileSchema, ProfileFormData } from "../form/profile";
-import {
-  useGetProfile,
-  useUpdateProfile,
-  useDeletePhoto,
-} from "../api";
+import { useGetProfile, useUpdateProfile, useDeletePhoto } from "../api";
 import { useUploadPhoto } from "../api/use-upload-photo";
 import { Loader2 } from "lucide-react";
 
@@ -49,7 +45,10 @@ export default function ProfileFormWrapper() {
       toast.success("Profile berhasil diperbarui!");
       await queryClient.invalidateQueries({ queryKey: ["user-profile"] });
       try {
-        const { data } = await axiosInstance.get("/profile");
+        // Use baseURL: "" to force using Next.js Proxy
+        const { data } = await axiosInstance.get("/api/profile", {
+          baseURL: "",
+        });
         const p = data.data;
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const photo = p.photo_profile as string | null | undefined;
@@ -81,7 +80,10 @@ export default function ProfileFormWrapper() {
       toast.success("Foto profile berhasil diunggah!");
       await queryClient.invalidateQueries({ queryKey: ["user-profile"] });
       try {
-        const { data } = await axiosInstance.get("/profile");
+        // Use baseURL: "" to force using Next.js Proxy
+        const { data } = await axiosInstance.get("/api/profile", {
+          baseURL: "",
+        });
         const p = data.data;
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const photo = p.photo_profile as string | null | undefined;
@@ -112,7 +114,10 @@ export default function ProfileFormWrapper() {
       toast.success("Foto profile berhasil dihapus!");
       await queryClient.invalidateQueries({ queryKey: ["user-profile"] });
       try {
-        const { data } = await axiosInstance.get("/profile");
+        // Use baseURL: "" to force using Next.js Proxy
+        const { data } = await axiosInstance.get("/api/profile", {
+          baseURL: "",
+        });
         const p = data.data;
         await updateSession({
           user: {

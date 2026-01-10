@@ -14,7 +14,11 @@ export const useDeletePhoto = ({
 
   return useMutation({
     mutationFn: async () => {
-      const { data } = await axiosInstance.delete("/profile/photo");
+      // Send to Next.js Proxy /api/profile/photo
+      // Use baseURL: "" to prevent prepending /api/v1
+      const { data } = await axiosInstance.delete("/api/profile/photo", {
+        baseURL: "",
+      });
       return data.data;
     },
     onSuccess: () => {

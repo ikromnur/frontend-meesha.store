@@ -21,7 +21,10 @@ export const useGetProfile = () => {
     queryKey: ["user-profile"],
     queryFn: async () => {
       try {
-        const { data } = await axiosInstance.get("/profile");
+        // Use baseURL: "" to force using Next.js Proxy
+        const { data } = await axiosInstance.get("/api/profile", {
+          baseURL: "",
+        });
         return data.data as ProfileData;
       } catch (error) {
         console.error("[useGetProfile] Error fetching profile:", error);
