@@ -61,7 +61,12 @@ axiosInstance.interceptors.request.use(
           config.url = `/api/v1${path}`;
         }
       } else {
-        config.url = `/api${path}`;
+        // Fix for Proxy: Ensure /v1 is included for rewrite rules
+        if (path.startsWith("/v1")) {
+          config.url = `/api${path}`;
+        } else {
+          config.url = `/api/v1${path}`;
+        }
       }
     }
 
