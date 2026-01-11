@@ -335,10 +335,11 @@ const ProductForm = ({
                       </SelectTrigger>
                       <SelectContent>
                         {categories
-                          ?.filter(
-                            (c: SelectItemType) =>
-                              c?.id && String(c.id).trim() !== ""
-                          )
+                          ?.filter((c) => {
+                            if (!c) return false;
+                            const id = String(c.id || "");
+                            return id.trim().length > 0;
+                          })
                           .map((category: SelectItemType) => (
                             <SelectItem
                               key={category.id}
@@ -546,9 +547,11 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {objectiveOptions
-                              .filter(
-                                (o) => o?.id && String(o.id).trim() !== ""
-                              )
+                              .filter((o) => {
+                                if (!o) return false;
+                                const id = String(o.id || "");
+                                return id.trim().length > 0;
+                              })
                               .map((o) => (
                                 <SelectItem key={o.id} value={String(o.id)}>
                                   {o.name}
@@ -645,9 +648,11 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {colorOptions
-                              .filter(
-                                (o) => o?.id && String(o.id).trim() !== ""
-                              )
+                              .filter((o) => {
+                                if (!o) return false;
+                                const id = String(o.id || "");
+                                return id.trim().length > 0;
+                              })
                               .map((o) => (
                                 <SelectItem key={o.id} value={String(o.id)}>
                                   {o.name}
