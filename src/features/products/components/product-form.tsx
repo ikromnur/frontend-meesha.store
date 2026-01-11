@@ -340,14 +340,16 @@ const ProductForm = ({
                             const id = String(c.id || "");
                             return id.trim().length > 0;
                           })
-                          .map((category: SelectItemType) => (
-                            <SelectItem
-                              key={category.id}
-                              value={String(category.id)}
-                            >
-                              {category.name}
-                            </SelectItem>
-                          ))}
+                          .map((category: SelectItemType) => {
+                            const val = String(category.id);
+                            if (!val)
+                              console.error("Invalid category ID:", category);
+                            return (
+                              <SelectItem key={category.id} value={val}>
+                                {category.name}
+                              </SelectItem>
+                            );
+                          })}
                       </SelectContent>
                     </Select>
                   </FormControl>
