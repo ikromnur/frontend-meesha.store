@@ -337,10 +337,13 @@ const ProductForm = ({
                         {categories
                           ?.filter(
                             (c: SelectItemType) =>
-                              c.id && String(c.id).trim() !== ""
+                              c?.id && String(c.id).trim() !== ""
                           )
                           .map((category: SelectItemType) => (
-                            <SelectItem key={category.id} value={category.id}>
+                            <SelectItem
+                              key={category.id}
+                              value={String(category.id)}
+                            >
                               {category.name}
                             </SelectItem>
                           ))}
@@ -543,9 +546,11 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {objectiveOptions
-                              .filter((o) => o.id && String(o.id).trim() !== "")
+                              .filter(
+                                (o) => o?.id && String(o.id).trim() !== ""
+                              )
                               .map((o) => (
-                                <SelectItem key={o.id} value={o.id}>
+                                <SelectItem key={o.id} value={String(o.id)}>
                                   {o.name}
                                 </SelectItem>
                               ))}
@@ -640,9 +645,11 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {colorOptions
-                              .filter((o) => o.id && String(o.id).trim() !== "")
+                              .filter(
+                                (o) => o?.id && String(o.id).trim() !== ""
+                              )
                               .map((o) => (
-                                <SelectItem key={o.id} value={o.id}>
+                                <SelectItem key={o.id} value={String(o.id)}>
                                   {o.name}
                                 </SelectItem>
                               ))}
@@ -715,7 +722,7 @@ const ProductForm = ({
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(Size).map((value) => (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem key={value} value={String(value)}>
                             {sizeLabels[value]}
                           </SelectItem>
                         ))}
@@ -744,7 +751,7 @@ const ProductForm = ({
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(Availability).map((value) => (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem key={value} value={String(value)}>
                             {availabilityLabels[value]}
                           </SelectItem>
                         ))}
