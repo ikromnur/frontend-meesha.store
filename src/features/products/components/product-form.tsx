@@ -328,7 +328,7 @@ const ProductForm = ({
                       value={field.value?.id ?? ""}
                     >
                       <SelectTrigger>
-                      <SelectValue
+                        <SelectValue
                           placeholder="Pilih kategori"
                           defaultValue={field.value?.name}
                         />
@@ -336,7 +336,8 @@ const ProductForm = ({
                       <SelectContent>
                         {categories
                           ?.filter(
-                            (c: SelectItemType) => c.id && c.id.trim() !== ""
+                            (c: SelectItemType) =>
+                              c.id && String(c.id).trim() !== ""
                           )
                           .map((category: SelectItemType) => (
                             <SelectItem key={category.id} value={category.id}>
@@ -542,7 +543,7 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {objectiveOptions
-                              .filter((o) => o.id && o.id.trim() !== "")
+                              .filter((o) => o.id && String(o.id).trim() !== "")
                               .map((o) => (
                                 <SelectItem key={o.id} value={o.id}>
                                   {o.name}
@@ -562,12 +563,13 @@ const ProductForm = ({
                               const name = inputObjective.trim();
                               if (!name) return;
                               const key = slugify(name);
+                              if (!key) return;
                               const item = { id: key, key, name };
                               setObjectiveOptions((prev) =>
                                 prev.find((p) => p.id === item.id)
                                   ? prev
                                   : [...prev, item]
-                                );
+                              );
                               field.onChange(item);
                               setInputObjective("");
                             }
@@ -579,6 +581,7 @@ const ProductForm = ({
                             const name = inputObjective.trim();
                             if (!name) return;
                             const key = slugify(name);
+                            if (!key) return;
                             const item = { id: key, key, name };
                             setObjectiveOptions((prev) =>
                               prev.find((p) => p.id === item.id)
@@ -637,7 +640,7 @@ const ProductForm = ({
                           </SelectTrigger>
                           <SelectContent>
                             {colorOptions
-                              .filter((o) => o.id && o.id.trim() !== "")
+                              .filter((o) => o.id && String(o.id).trim() !== "")
                               .map((o) => (
                                 <SelectItem key={o.id} value={o.id}>
                                   {o.name}
@@ -657,6 +660,7 @@ const ProductForm = ({
                               const name = inputColor.trim();
                               if (!name) return;
                               const key = slugify(name);
+                              if (!key) return;
                               const item = { id: key, key, name };
                               setColorOptions((prev) =>
                                 prev.find((p) => p.id === item.id)
@@ -674,6 +678,7 @@ const ProductForm = ({
                             const name = inputColor.trim();
                             if (!name) return;
                             const key = slugify(name);
+                            if (!key) return;
                             const item = { id: key, key, name };
                             setColorOptions((prev) =>
                               prev.find((p) => p.id === item.id)
